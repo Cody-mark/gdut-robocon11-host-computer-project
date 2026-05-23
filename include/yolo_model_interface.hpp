@@ -8,8 +8,10 @@
 #include <array>
 #include <cmath>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <vector>
+
 
 // 封装 ONNXRuntime + YOLO 前后处理
 template <typename Derived> class YoloOnnxProcessor {
@@ -36,7 +38,7 @@ public:
 
 protected:
   // 构造函数：加载模型、读取输入输出信息
-  explicit YoloOnnxProcessor(const std::string &modelPath)
+  explicit YoloOnnxProcessor(const std::filesystem::path &modelPath)
       : env_(ORT_LOGGING_LEVEL_WARNING, "yolo-onnx-cpp"), sessionOptions_(),
         session_(nullptr), memoryInfo_(Ort::MemoryInfo::CreateCpu(
                                OrtArenaAllocator, OrtMemTypeDefault)) {

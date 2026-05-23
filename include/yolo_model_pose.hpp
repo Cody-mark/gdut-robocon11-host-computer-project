@@ -13,7 +13,7 @@ public:
     std::vector<float> visibility;
   };
 
-  YoloOnnxPose(const std::string &modelPath, int numKeypoints)
+  YoloOnnxPose(const std::filesystem::path &modelPath, int numKeypoints)
       : YoloOnnxProcessor<YoloOnnxPose>(modelPath), numKpts_(numKeypoints) {}
 
   static void drawPose(cv::Mat &image, const std::vector<PoseResult> &poses) {

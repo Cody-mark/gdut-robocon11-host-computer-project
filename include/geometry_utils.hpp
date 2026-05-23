@@ -53,7 +53,7 @@ approxToQuad(const std::vector<cv::Point> &contour) {
     if (approx.size() == 4) {
       std::vector<cv::Point2f> quad;
       for (auto &p : approx)
-        quad.emplace_back(p.x, p.y);
+        quad.emplace_back(static_cast<float>(p.x), static_cast<float>(p.y));
       return quad;
     }
   }

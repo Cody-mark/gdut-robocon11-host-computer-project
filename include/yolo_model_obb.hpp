@@ -20,7 +20,7 @@ public:
     std::vector<cv::Point2f> corners; // 4个点，可由 RotatedRect 生成
   };
 
-  YoloOnnxObb(const std::string &modelPath,
+  YoloOnnxObb(const std::filesystem::path &modelPath,
               const std::vector<std::string> &classNames)
       : YoloOnnxProcessor<YoloOnnxObb>(modelPath), classNames_(classNames) {}
 

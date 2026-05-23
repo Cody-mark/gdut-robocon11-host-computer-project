@@ -19,12 +19,12 @@ public:
   };
 
   // 构造函数：传入三个模型的路径和对应的类别名
-  BlockFacePipeline(const std::string &detect_model_path,
+  BlockFacePipeline(const std::filesystem::path &detect_model_path,
                     const std::vector<std::string> &detect_classes,
-                    const std::string &segment_model_path,
+                    const std::filesystem::path &segment_model_path,
                     const std::vector<std::string>
                         &seg_classes, // 分割模型的类别名（可能有背景类）
-                    const std::string &classify_model_path,
+                    const std::filesystem::path &classify_model_path,
                     const std::vector<std::string> &face_classes,
                     int warp_size = 512, float detect_conf = 0.5f,
                     float seg_conf = 0.3f, float min_face_area = 500)

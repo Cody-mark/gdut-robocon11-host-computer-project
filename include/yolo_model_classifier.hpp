@@ -12,7 +12,7 @@ public:
     float confidence;
   };
 
-  YoloOnnxClassifier(const std::string &modelPath,
+  YoloOnnxClassifier(const std::filesystem::path &modelPath,
                      const std::vector<std::string> &classNames)
       : YoloOnnxProcessor<YoloOnnxClassifier>(modelPath),
         classNames_(classNames) {}

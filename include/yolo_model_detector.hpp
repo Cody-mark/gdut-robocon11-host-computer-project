@@ -23,7 +23,7 @@ public:
     cv::Rect box;
   };
 
-  YoloOnnxDetector(const std::string &modelPath,
+  YoloOnnxDetector(const std::filesystem::path &modelPath,
                    const std::vector<std::string> &classNames)
       : YoloOnnxProcessor<YoloOnnxDetector>(modelPath),
         classNames_(classNames) {}

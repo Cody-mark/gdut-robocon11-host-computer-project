@@ -18,7 +18,7 @@ public:
     cv::Mat mask;                     // 原图坐标系下的二值掩码 (CV_8UC1, 0/255)
   };
 
-  YoloOnnxSegmentor(const std::string &modelPath,
+  YoloOnnxSegmentor(const std::filesystem::path &modelPath,
                     const std::vector<std::string> &classNames,
                     int numMaskCoeffs = 32)
       : YoloOnnxProcessor<YoloOnnxSegmentor>(modelPath),
@@ -144,7 +144,8 @@ private:
       // 轮廓点坐标转换回全图坐标
       std::vector<cv::Point2f> polygon;
       for (auto &p : *biggest)
-        polygon.emplace_back(p.x + ix1, p.y + iy1);
+        polygon.emplace_back(static_cast<float>(p.x + ix1),
+                             static_cast<float>(p.y + iy1));
 
       // 构建结果
       InstanceMask inst;
