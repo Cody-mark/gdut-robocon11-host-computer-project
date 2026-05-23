@@ -5,10 +5,8 @@
 #include <opencv2/opencv.hpp>
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <cstring>
-#include <iostream>
 #include <string>
 #include <vector>
 

@@ -6,9 +6,14 @@ find_package(OpenCV REQUIRED)
 
 find_library(ONNXRUNTIME_LIB onnxruntime)
 
-add_executable(model_test main.cpp)
+file(GLOB INCLUDE_FILES "include/*.hpp")
+
+add_executable(model_test
+  ${INCLUDE_FILES}
+  main.cpp)
 
 target_include_directories(model_test PUBLIC
+  include/
   ${OpenCV_INCLUDE_DIRS}
   ${ONNXRUNTIME_INCLUDE}
 )
