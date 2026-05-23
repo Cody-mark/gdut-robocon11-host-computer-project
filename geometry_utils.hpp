@@ -5,7 +5,7 @@
 
 // 对四个点排序：[左上, 右上, 右下, 左下]
 inline std::vector<cv::Point2f>
-order_points(const std::vector<cv::Point2f> &pts) {
+orderPoints(const std::vector<cv::Point2f> &pts) {
   std::vector<cv::Point2f> rect(4);
   std::vector<float> sum(4), diff(4);
   for (int i = 0; i < 4; ++i) {
@@ -25,12 +25,12 @@ order_points(const std::vector<cv::Point2f> &pts) {
 }
 
 // 将输入图像中由四边形包围的区域透视变换为正方形
-// poly: 四个点（任意顺序，内部会调用 order_points 排序）
+// poly: 四个点（任意顺序，内部会调用 orderPoints 排序）
 // output_size: 输出正方形边长
-inline cv::Mat warp_polygon_to_square(const cv::Mat &img,
-                                      const std::vector<cv::Point2f> &poly,
-                                      int output_size = 512) {
-  auto src = order_points(poly);
+inline cv::Mat warpPolygonToSquare(const cv::Mat &img,
+                                   const std::vector<cv::Point2f> &poly,
+                                   int output_size = 512) {
+  auto src = orderPoints(poly);
   std::vector<cv::Point2f> dst = {{0.0f, 0.0f},
                                   {static_cast<float>(output_size - 1), 0.0f},
                                   {static_cast<float>(output_size - 1),
@@ -44,7 +44,7 @@ inline cv::Mat warp_polygon_to_square(const cv::Mat &img,
 
 // 将轮廓近似为四边形，失败则回退到最小外接矩形
 inline std::vector<cv::Point2f>
-approx_to_quad(const std::vector<cv::Point> &contour) {
+approxToQuad(const std::vector<cv::Point> &contour) {
   double peri = cv::arcLength(contour, true);
   std::vector<cv::Point> approx;
   // 尝试多个 epsilon 因子

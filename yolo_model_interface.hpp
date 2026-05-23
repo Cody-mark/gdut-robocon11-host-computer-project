@@ -149,6 +149,25 @@ protected:
                         &inputTensor, 1, outputNames.data(), 1);
   }
 
+  // 多输出推理（用于分割等需要多个输出张量的模型）
+  std::vector<Ort::Value>
+  runInference(const std::vector<float> &inputData,
+               const std::vector<std::string> &outputNames) {
+    std::array<int64_t, 4> tensorShape = {1, 3, inputH_, inputW_};
+    Ort::Value inputTensor = Ort::Value::CreateTensor<float>(
+        memoryInfo_, const_cast<float *>(inputData.data()), inputData.size(),
+        tensorShape.data(), tensorShape.size());
+
+    std::vector<const char *> namePtrs;
+    for (auto &name : outputNames)
+      namePtrs.push_back(name.c_str());
+
+    std::array<const char *, 1> inputNames = {inputName_.c_str()};
+
+    return session_.Run(Ort::RunOptions{nullptr}, inputNames.data(),
+                        &inputTensor, 1, namePtrs.data(), namePtrs.size());
+  }
+
   // ONNX Runtime 关键对象
   Ort::Env env_;
   Ort::SessionOptions sessionOptions_;

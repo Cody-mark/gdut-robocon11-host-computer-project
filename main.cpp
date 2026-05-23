@@ -10,5 +10,5 @@
 
 int main() {
   std::cout << "Hello world!\n";
-  BlockFacePipeline pipeline{"1.onnx", {}, "2.onnx", "3.onnx", {}};
+  BlockFacePipeline pipeline{"1.onnx", {}, "2.onnx", {}, "3.onnx", {}};
 }

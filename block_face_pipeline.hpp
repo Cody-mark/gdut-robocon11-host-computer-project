@@ -4,10 +4,7 @@
 #include "yolo_model_classifier.hpp"
 #include "yolo_model_detector.hpp"
 #include "yolo_model_segmentor.hpp"
-
-#include <opencv2/opencv.hpp>
-#include <string>
-#include <vector>
+#include <opencv2/core/types.hpp>
 
 class BlockFacePipeline {
 public:
@@ -25,74 +22,77 @@ public:
   BlockFacePipeline(const std::string &detect_model_path,
                     const std::vector<std::string> &detect_classes,
                     const std::string &segment_model_path,
+                    const std::vector<std::string>
+                        &seg_classes, // 分割模型的类别名（可能有背景类）
                     const std::string &classify_model_path,
                     const std::vector<std::string> &face_classes,
                     int warp_size = 512, float detect_conf = 0.5f,
-                    float min_face_area = 500)
+                    float seg_conf = 0.3f, float min_face_area = 500)
       : detector_(detect_model_path, detect_classes),
-        segmentor_(segment_model_path),
+        segmentor_(segment_model_path, seg_classes), // 实例分割，需要类别名
         classifier_(classify_model_path, face_classes), warp_size_(warp_size),
-        detect_conf_(detect_conf), min_face_area_(min_face_area) {}
+        detect_conf_(detect_conf), seg_conf_(seg_conf),
+        min_face_area_(min_face_area) {}
 
   // 处理一张图像，返回所有检测到的面的分类结果
   std::vector<FaceResult> process(const cv::Mat &image) {
     std::vector<FaceResult> results;
 
-    // 1. 检测方块区域
+    // 1. 检测方块
     auto detections = detector_.process(image, detect_conf_);
     for (size_t i = 0; i < detections.size(); ++i) {
       const auto &det = detections[i];
-      // 可以稍微扩大裁剪区域，避免边缘切掉
+      // 稍微扩大裁剪区域
+      int pad = 10;
       cv::Rect roi = det.box;
-      int pad = 5;
-      roi.x = std::max(0, roi.x - pad);
-      roi.y = std::max(0, roi.y - pad);
-      roi.width = std::min(image.cols - roi.x, roi.width + 2 * pad);
-      roi.height = std::min(image.rows - roi.y, roi.height + 2 * pad);
+      roi.x -= pad;
+      roi.y -= pad;
+      roi.width += 2 * pad;
+      roi.height += 2 * pad;
+      roi = roi & cv::Rect(0, 0, image.cols, image.rows); // 限制在图像内
       if (roi.width <= 0 || roi.height <= 0)
         continue;
 
       cv::Mat cropped = image(roi).clone();
 
-      // 2. 对裁剪区域做分割，得到 mask（尺寸与 cropped 相同）
-      cv::Mat mask =
-          segmentor_.process(cropped); // 返回 CV_8UC1，每个像素为类别 id
-      if (mask.empty())
-        continue;
+      // 2. 实例分割面（在裁剪图上运行）
+      auto instances = segmentor_.process(cropped, seg_conf_);
+      for (size_t j = 0; j < instances.size(); ++j) {
+        auto &inst = instances[j];
+        if (inst.polygon.size() < 3)
+          continue;
 
-      // 3. 从 mask 中提取每一个面的轮廓（假设每个面是不同区域，且类别 id
-      // 不同或区域隔开） 这里简单把 mask
-      // 转为二值图，然后找所有轮廓，每个轮廓对应一个面。
-      cv::Mat binary;
-      cv::threshold(mask, binary, 1, 255, cv::THRESH_BINARY); // 所有非背景
-      std::vector<std::vector<cv::Point>> contours;
-      cv::findContours(binary, contours, cv::RETR_EXTERNAL,
-                       cv::CHAIN_APPROX_SIMPLE);
+        std::vector<cv::Point> contour;
+        contour.resize(inst.polygon.size());
+        std::transform(inst.polygon.begin(), inst.polygon.end(),
+                       contour.begin(), [](cv::Point2f p) {
+                         return cv::Point{static_cast<int>(p.x),
+                                          static_cast<int>(p.y)};
+                       });
 
-      for (size_t j = 0; j < contours.size(); ++j) {
-        double area = cv::contourArea(contours[j]);
-        if (area < min_face_area_)
+        // 检测面积大小
+        if (cv::contourArea(inst.polygon) < min_face_area_)
           continue;
 
         // 近似为四边形
-        auto quad = approx_to_quad(contours[j]);
+        auto quad = approxToQuad(contour);
         if (quad.size() != 4)
           continue;
 
-        // 4. 透视矫正为正正方形
-        cv::Mat warped = warp_polygon_to_square(cropped, quad, warp_size_);
+        // 3. 透视矫正
+        cv::Mat warped = warpPolygonToSquare(cropped, quad, warp_size_);
 
-        // 5. 分类
-        auto cls_res = classifier_.process(warped);
-        if (cls_res.classId < 0)
-          continue; // 分类失败
+        // 4. 分类
+        auto cls = classifier_.process(warped);
+        if (cls.classId < 0)
+          continue;
 
         FaceResult fr;
         fr.warped_face = warped;
-        fr.class_id = cls_res.classId;
-        fr.class_name = cls_res.className;
-        fr.confidence = cls_res.confidence;
-        fr.source_bbox = det.box;
+        fr.class_id = cls.classId;
+        fr.class_name = cls.className;
+        fr.confidence = cls.confidence;
+        fr.source_bbox = det.box; // 原始检测框（全图坐标）
         fr.face_index = static_cast<int>(j);
         results.push_back(fr);
       }
@@ -102,9 +102,10 @@ public:
 
 private:
   YoloOnnxDetector detector_;
-  YoloOnnxSegmentor segmentor_;
+  YoloOnnxSegmentor segmentor_; // 实例分割
   YoloOnnxClassifier classifier_;
   int warp_size_;
   float detect_conf_;
+  float seg_conf_;
   float min_face_area_;
 };
