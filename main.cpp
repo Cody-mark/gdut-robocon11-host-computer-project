@@ -7,6 +7,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "block_face_pipeline.hpp"
+#include "transfer_protocol.hpp"
 
 int main() {
   try {
