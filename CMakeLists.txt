@@ -30,6 +30,27 @@ add_custom_command(TARGET model_test POST_BUILD
           $<TARGET_FILE_DIR:model_test>
 )
 
+# ---- weapon 检测程序 ----
+add_executable(weapon_test
+  ${INCLUDE_FILES}
+  main_weapon.cpp)
+
+target_include_directories(weapon_test PUBLIC
+  include/
+  ${OpenCV_INCLUDE_DIRS}
+)
+
+target_link_libraries(weapon_test PUBLIC
+  ${OpenCV_LIBS}
+  onnxruntime::onnxruntime
+)
+
+add_custom_command(TARGET weapon_test POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          $<TARGET_FILE:onnxruntime::onnxruntime>
+          $<TARGET_FILE_DIR:weapon_test>
+)
+
 target_compile_options(model_test PUBLIC
   "$<$<CXX_COMPILER_ID:MSVC>:/utf-8>"
 )

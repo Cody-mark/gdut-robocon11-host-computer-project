@@ -21,12 +21,45 @@ public:
     std::string className;
     float score = 0.0f;
     cv::Rect box;
+
+    cv::Point center() const {
+      return cv::Point(box.x + box.width / 2, box.y + box.height / 2);
+    }
   };
 
   YoloOnnxDetector(const std::filesystem::path &modelPath,
                    const std::vector<std::string> &classNames)
       : YoloOnnxProcessor<YoloOnnxDetector>(modelPath),
         classNames_(classNames) {}
+
+  // 按类别过滤
+  static std::vector<Detection>
+  getByClass(const std::vector<Detection> &dets, int classId) {
+    std::vector<Detection> result;
+    for (const auto &d : dets)
+      if (d.classId == classId)
+        result.push_back(d);
+    return result;
+  }
+
+  // 找距画面中心最近的检测框
+  static const Detection *
+  nearestToCenter(const std::vector<Detection> &dets,
+                  const cv::Size &frameSize) {
+    if (dets.empty())
+      return nullptr;
+    const cv::Point imgCenter(frameSize.width / 2, frameSize.height / 2);
+    const Detection *best = &dets[0];
+    double bestDist = cv::norm(best->center() - imgCenter);
+    for (size_t i = 1; i < dets.size(); ++i) {
+      double dist = cv::norm(dets[i].center() - imgCenter);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = &dets[i];
+      }
+    }
+    return best;
+  }
 
   // 绘制检测结果
   static void drawDetections(cv::Mat &image,
