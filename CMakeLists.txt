@@ -8,6 +8,9 @@ project(model_test)
 find_package(OpenCV REQUIRED)
 find_package(onnxruntime REQUIRED)
 
+add_library(asio INTERFACE)
+target_include_directories(asio INTERFACE ${CMAKE_SOURCE_DIR}/asio/include)
+
 file(GLOB INCLUDE_FILES "include/*.hpp")
 
 add_executable(model_test
@@ -30,6 +33,10 @@ add_custom_command(TARGET model_test POST_BUILD
           $<TARGET_FILE_DIR:model_test>
 )
 
+target_compile_options(model_test PUBLIC
+  "$<$<CXX_COMPILER_ID:MSVC>:/utf-8>"
+)
+
 # ---- weapon 检测程序 ----
 add_executable(weapon_test
   ${INCLUDE_FILES}
@@ -43,6 +50,7 @@ target_include_directories(weapon_test PUBLIC
 target_link_libraries(weapon_test PUBLIC
   ${OpenCV_LIBS}
   onnxruntime::onnxruntime
+  asio
 )
 
 add_custom_command(TARGET weapon_test POST_BUILD
@@ -51,6 +59,6 @@ add_custom_command(TARGET weapon_test POST_BUILD
           $<TARGET_FILE_DIR:weapon_test>
 )
 
-target_compile_options(model_test PUBLIC
+target_compile_options(weapon_test PUBLIC
   "$<$<CXX_COMPILER_ID:MSVC>:/utf-8>"
 )
