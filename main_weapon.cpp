@@ -130,10 +130,12 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      // 发送欧式距离
+      // 发送欧式距离（右正左负）
       if (targetItf) {
         float distance = static_cast<float>(
             cv::norm(imgCenter - targetItf->center()));
+        if (targetItf->center().x < imgCenter.x)
+          distance = -distance;
 
         std::vector<uint8_t> body(sizeof(float));
         std::memcpy(body.data(), &distance, sizeof(float));
