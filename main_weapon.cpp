@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
     const char *env_port = std::getenv("SERIAL_PORT");
   #ifdef _WIN32
-    std::string serialPort = env_port ? env_port : "COM9";
+    std::string serialPort = env_port ? env_port : "COM10";
   #else
     std::string serialPort = env_port ? env_port : "/dev/ttyUSB0";
   #endif
