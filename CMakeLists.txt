@@ -5,6 +5,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(model_test)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# 默认路径，避免每次手动传 -D 参数
+if(NOT DEFINED OpenCV_DIR)
+  set(OpenCV_DIR "E:/opencv/opencv/build" CACHE PATH "OpenCV install prefix")
+endif()
+if(NOT DEFINED onnxruntime_DIR)
+  set(onnxruntime_DIR "E:/onnxruntime-win-x64-1.26.0/onnxruntime-win-x64-1.26.0" CACHE PATH "onnxruntime install prefix")
+endif()
+
 find_package(OpenCV REQUIRED)
 find_package(onnxruntime REQUIRED)
 
